@@ -1,0 +1,125 @@
+#!/sbin/sh
+
+#
+# Control Method for OpenSSH (/lib/svc/method/init.ossh)
+# Fixed by Yuri Voinov (C) 2007,2017
+#
+# ident "@(#)ossh.sh    2.0    30/07/17 YV"
+#
+
+#############
+# Variables #
+#############
+
+# SSHD files paths
+SSHD_PATH="/usr/local/sbin"
+SSHD_UTIL_PATH="/usr/local/bin"
+SSHD_CONF_PATH="/usr/local/etc"
+SSHD_RUN_DUR="/var/empty"
+
+# SSHD keys length
+SSHD_DSA_SERVER_KEY_BITS="1024"
+SSHD_RSA_SERVER_KEY_BITS="4096"
+SSHD_ECDSA_SERVER_KEY_BITS="521"
+SSHD_ED2551_SERVER_KEY_BITS="256"
+
+#
+# OS Commands location variables
+#
+CUT=`which cut`
+ECHO=`which echo`
+MKDIR=`which mkdir`
+PKILL=`which pkill`
+RM=`which rm`
+UNAME=`which uname`
+
+# OS release
+OS_VER=`$UNAME -r|$CUT -f2 -d"."`
+OS_NAME=`$UNAME -s|$CUT -f1 -d" "`
+
+###############
+# Subroutines #
+###############
+
+check_ossh ()
+{
+ # Check OpenSSH installed
+ if [ ! -f "$SSHD_PATH/sshd" -a ! -x "$SSHD_PATH/sshd" ]; then
+  $ECHO "ERROR: OpenSSH not found!"
+  $ECHO "Exiting..."
+  exit 1
+ fi
+}
+
+check_os ()
+{
+ # Check OS version
+ if [ ! "$OS_NAME" = "SunOS" -a ! "$OS_VER" -lt "10" ]; then
+  $ECHO "ERROR: Unsupported OS $OS_NAME $OS_VER"
+  $ECHO "Exiting..."
+  exit 1
+ fi
+}
+
+make_hostkeys ()
+{
+ # Making host keys if they dont exist
+ if [ ! -f $SSHD_CONF_PATH/ssh_host_dsa_key -o ! -f $SSHD_CONF_PATH/ssh_host_rsa_key ]; then
+  $SSHD_UTIL_PATH/ssh-keygen -b $SSHD_DSA_SERVER_KEY_BITS -t dsa -f $SSHD_CONF_PATH/ssh_host_dsa_key -N "">/dev/null 2>&1
+  $SSHD_UTIL_PATH/ssh-keygen -b $SSHD_RSA_SERVER_KEY_BITS -t rsa -f $SSHD_CONF_PATH/ssh_host_rsa_key -N "">/dev/null 2>&1
+ fi
+
+ # Making advanced host keys if they dont exist
+ if [ ! -f $SSHD_CONF_PATH/ssh_host_ecdsa_key -o ! -f $SSHD_CONF_PATH/ssh_host_ed25519_key ]; then
+  $SSHD_UTIL_PATH/ssh-keygen -b $SSHD_ECDSA_SERVER_KEY_BITS -t ecdsa -f $SSHD_CONF_PATH/ssh_host_ecdsa_key -N "">/dev/null 2>&1
+  $SSHD_UTIL_PATH/ssh-keygen -b $SSHD_ED2551_SERVER_KEY_BITS -t ed25519 -f $SSHD_CONF_PATH/ssh_host_ed25519_key -N "">/dev/null 2>&1
+ fi
+}
+
+killproc()
+{
+# Kill the process(es) specified
+# Arg1 is the process name, arg2 is signal
+ $PKILL -$2 $1
+}
+
+##############
+# Main block #
+##############
+
+# Check OpenSSH installed
+check_ossh
+
+# Check OS version
+check_os
+
+case "$1" in
+"start")
+  make_hostkeys
+  $SSHD_PATH/sshd -f $SSHD_CONF_PATH/sshd_config
+  ;;
+"stop")
+  killproc sshd KILL
+  ;;
+"-u")
+  $RM -f $SSHD_CONF_PATH/ssh_host_*_key*
+  ;;
+"-c")
+  $RM -f $SSHD_CONF_PATH/ssh_host_*_key*
+  make_hostkeys
+  ;;
+"refresh")
+  killproc sshd HUP
+  ;;
+"restart")
+  killproc sshd KILL
+  $SSHD_PATH/sshd -f $SSHD_CONF_PATH/sshd_config
+  ;;
+*)
+  $ECHO "Usage: $0 { start | stop | refresh | restart | -u | -c }"
+  $ECHO " -u option will remove host keys"
+  $ECHO " -c option will recreate host keys"
+  exit 1
+esac
+
+exit 0
