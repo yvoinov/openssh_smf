@@ -2,9 +2,9 @@
 
 #
 # OpenSSH run pre-requisites remove.
-# Yuri Voinov (C) 2007,2017
+# Yuri Voinov (C) 2007,2025
 #
-# ident "@(#)pre_ossh_rmv.sh    2.0    30/07/17 YV"
+# ident "@(#)pre_ossh_rmv.sh    2.0    06/06/25 YV"
 #
 
 #############
@@ -69,11 +69,11 @@ remove_pre_ossh ()
  $RM -r $VAR_EMPTY>/dev/null 2>&1
 
  $ECHO "Remove sshd user and group..."
- $USERDEL $SSH_GROUP_USER>/dev/null 2>&1
+ $USERDEL $SSH_GROUP_USER>/dev/null 2>&1 
  $GROUPDEL $SSH_GROUP_USER>/dev/null 2>&1
 
  # Remove host-keys if they exist...
- if [ -f $LOCAL_DIR/etc/ssh_host_dsa_key -o -f $LOCAL_DIR/etc/ssh_host_rsa_key ]; then
+ if [ -f $LOCAL_DIR/etc/ssh_host_ecdsa_key -o -f $LOCAL_DIR/etc/ssh_host_ed25519_key -o -f $LOCAL_DIR/etc/ssh_host_rsa_key ]; then
   $ECHO "Remove host keys..."
   $RM -f $LOCAL_DIR/etc/ssh_host_*_key*>/dev/null 2>&1
  fi
@@ -83,8 +83,8 @@ remove_pre_ossh ()
 # Main block #
 ##############
 
-# Pre-removal checks
-# OS version check
+# Pre-remove checks.
+# OS version check   
 os_check
 
 # Superuser check
@@ -115,3 +115,4 @@ else
 fi
 
 exit 0
+###
