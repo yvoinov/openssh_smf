@@ -21,7 +21,7 @@ SVC_MTD="/lib/svc/method"
 LOCAL_DIR="/usr/local"
 VAR_EMPTY="/var/empty"
 
-# OS utilities
+# OS utilities   
 AWK=`which awk`
 CUT=`which cut`
 ECHO=`which echo`
@@ -71,7 +71,7 @@ non_global_zones_r ()
 if [ "$ZONE" != "global" ]; then
  $ECHO  "================================================================="
  $ECHO  "This is NON GLOBAL zone $ZONE. To complete uninstallation please remove"
- $ECHO  "script $SCRIPT_NAME"
+ $ECHO  "script $SCRIPT_NAME" 
  $ECHO  "from $SVC_MTD"
  $ECHO  "in GLOBAL zone manually AFTER uninstalling autostart."
  $ECHO  "================================================================="
@@ -106,10 +106,21 @@ $ECHO "- or <Ctrl+C> to cancel                  -"
 $ECHO "------------------------------------------"
 read p
 
+# Disabling and stopping SMF service
+$ECHO "Disabling and stopping running $PROGRAM_NAME service..."
+$SVCADM disable $SERVICE_NAME>/dev/null 2>&1
+
+# OpenSSH Service will be stopped
+$ECHO "Kill all $PROGRAM_NAME service processes..."
+PID=`$PS -ej|$GREP $SCRIPT_NAME|$AWK {' print $1 '}`
+if [ ! -z "$PID" ]; then
+ $PKILL $SCRIPT_NAME>/dev/null 2>&1
+fi
+
 # Remove SMF files
 $ECHO "Remove $PROGRAM_NAME SMF files..."
 if [ -f $SVC_MTD/$SCRIPT_NAME -a -f $SMF_DIR/$SMF_XML ]; then
- $SVCCFG delete -f svc:/network/"$SCRIPT_NAME":default>/dev/null 2>&1
+ $SVCCFG delete -f svc:/network/$SERVICE_NAME:default>/dev/null 2>&1
  $RM $SMF_DIR/$SMF_XML
  $RM -f $SVC_MTD/$SCRIPT_NAME
 else
@@ -127,20 +138,14 @@ $SVCS $SERVICE_NAME>/dev/null 2>&1
 
 retcode=`$ECHO $?`
 case "$retcode" in
- 0)
+ 0) 
   $ECHO "*** $PROGRAM_NAME SMF service uninstallation process has errors"
-  exit 1
+  exit 1 
  ;;
- *)
+ *) 
   $ECHO "*** $PROGRAM_NAME SMF service uninstallation successfuly"
  ;;
 esac
 
-# OpenSSH Service will be stopped
-$ECHO "Kill all $PROGRAM_NAME service processes..."
-PID=`$PS -ej|$GREP $SCRIPT_NAME|$AWK {' print $1 '}`
-if [ ! -z "$PID" ]; then
- $PKILL $SCRIPT_NAME>/dev/null 2>&1
-fi
-
 exit 0
+#
