@@ -2,9 +2,9 @@
 
 #
 # OpenSSH SMF installation.
-# Yuri Voinov (C) 2007,2017
+# Yuri Voinov (C) 2007,2025
 #
-# ident "@(#)ossh_smf_inst.sh    2.0    30/07/17 YV"
+# ident "@(#)ossh_smf_inst.sh    2.0    06/06/25 YV"
 #
 
 #############
@@ -102,7 +102,7 @@ exec_pre_ossh ()
  $CHMOD 755 $VAR_EMPTY>/dev/null 2>&1
  if [ ! -d $LOCAL_DIR/etc ]; then
   $MKDIR -p $LOCAL_DIR/etc>/dev/null 2>&1
-  $CHOWN root:sys $LOCAL_DIR/etc>/dev/null 2>&1
+  $CHOWN root:sys $LOCAL_DIR/etc>/dev/null 2>&1 
   $CHMOD 755 $LOCAL_DIR/etc>/dev/null 2>&1
  fi
  $GROUPADD $SSH_GROUP_USER>/dev/null 2>&1
@@ -110,9 +110,8 @@ exec_pre_ossh ()
  $PASSWD -N $SSH_GROUP_USER
 
  # Making host-keys if they not exist
- if [ ! -f $LOCAL_DIR/etc/ssh_host_dsa_key -o ! -f $LOCAL_DIR/etc/ssh_host_rsa_key ]; then
+ if [ ! -f $LOCAL_DIR/etc/ssh_host_rsa_key ]; then
   $ECHO "$PROGRAM_NAME host keys generation. Please wait..."
-  $LOCAL_DIR/bin/ssh-keygen -b $SSHD_DSA_SERVER_KEY_BITS -t dsa -f $LOCAL_DIR/etc/ssh_host_dsa_key -N "">/dev/null 2>&1
   $LOCAL_DIR/bin/ssh-keygen -b $SSHD_RSA_SERVER_KEY_BITS -t rsa -f $LOCAL_DIR/etc/ssh_host_rsa_key -N "">/dev/null 2>&1
  fi
 
@@ -130,7 +129,7 @@ non_global_zones ()
  if [ "$ZONE" != "global" ]; then
   $ECHO "=============================================================="
   $ECHO "This is NON GLOBAL zone $ZONE. To complete installation please copy"
-  $ECHO "script $SCRIPT_NAME"
+  $ECHO "script $SCRIPT_NAME" 
   $ECHO "to $SVC_MTD"
   $ECHO "in GLOBAL zone manually BEFORE starting service by SMF."
   $ECHO "Note: Permissions on $SCRIPT_NAME must be set to root:sys."
@@ -168,7 +167,7 @@ $ECHO "Copying $PROGRAM_NAME SMF files..."
 if [ -f "$SCRIPT_NAME" -a -f "$SMF_XML" ]; then
  # Make needful permissions fo files
  $CHOWN root:sys $SCRIPT_NAME
- $CHOWN root:sys $SMF_XML
+ $CHOWN root:sys $SMF_XML  
 
  # Copy SMF method
  $COPY $SCRIPT_NAME $SVC_MTD
@@ -220,3 +219,4 @@ non_global_zones
 $ECHO "If $PROGRAM_NAME services installed correctly, enable and start it now"
 
 exit 0
+#
