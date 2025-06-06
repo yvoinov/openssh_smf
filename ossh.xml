@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
-<!--   Service manifest for OpenSSH
-       Fixed by Yuri Voinov (C) 2007,2017
+<!--   Service manifest for OpenSSH    
+       Fixed by Yuri Voinov (C) 2007,2025
 -->
 <service_bundle type='manifest' name='OpenSSH server'>
 
@@ -30,19 +30,35 @@
             <service_fmri value='svc:/milestone/network'/>
         </dependency>
 
-        <dependency name='ossh-config'
-                grouping='require_all'
-                restart_on='refresh'
-                type='path'>
-                <service_fmri value='file://localhost/usr/local/etc/sshd_config' />
-        </dependency>
+	<dependency name='cryptosvc'
+		grouping='require_all'
+		restart_on='none'
+		type='service'>
+		<service_fmri value='svc:/system/cryptosvc' />
+	</dependency>
 
-        <dependent
-            name='multi-user-server'
-            restart_on='none'
-            grouping='optional_all'>
-            <service_fmri value='svc:/milestone/multi-user-server'/>
-        </dependent>
+	<dependency name='utmp'
+		grouping='require_all'
+		restart_on='none'
+		type='service'>
+		<service_fmri value='svc:/system/utmp' />
+	</dependency>
+
+	<dependency name='config_data'
+		grouping='require_all'
+		restart_on='restart'
+		type='path'>
+		<service_fmri
+		    value='file://localhost/usr/local/etc/sshd_config' />
+	</dependency>
+
+	<dependent
+		name='ossh_multi-user-server'
+		grouping='optional_all'
+		restart_on='none'>
+			<service_fmri
+			    value='svc:/milestone/multi-user-server' />
+	</dependent>
 
         <exec_method
                 type='method'
