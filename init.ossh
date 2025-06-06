@@ -23,7 +23,7 @@ SSHD_RSA_SERVER_KEY_BITS="4096"
 SSHD_ECDSA_SERVER_KEY_BITS="521"
 SSHD_ED2551_SERVER_KEY_BITS="256"
 
-#
+# 
 # OS Commands location variables
 #
 CUT=`which cut`
@@ -61,7 +61,7 @@ check_os ()
  fi
 }
 
-make_hostkeys ()
+make_hostkeys () 
 {
  # Making host keys if they dont exist
  if [ ! -f $SSHD_CONF_PATH/ssh_host_dsa_key -o ! -f $SSHD_CONF_PATH/ssh_host_rsa_key ]; then
@@ -76,7 +76,7 @@ make_hostkeys ()
  fi
 }
 
-killproc()
+killproc() 
 {
 # Kill the process(es) specified
 # Arg1 is the process name, arg2 is signal
@@ -101,7 +101,7 @@ case "$1" in
 "stop")
   killproc sshd KILL
   ;;
-"-u")
+"-u")  
   $RM -f $SSHD_CONF_PATH/ssh_host_*_key*
   ;;
 "-c")
